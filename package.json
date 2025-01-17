@@ -1,0 +1,14 @@
+{
+  "name": "webapiclass",
+  "version": "1.0.0",
+  "description": "webAPIclass",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Mike Janczar",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
