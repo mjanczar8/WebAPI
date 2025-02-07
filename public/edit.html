@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit | Michael Janczar</title>
+</head>
+<body>
+    <h1>Edit Game</h1>
+    
+    <form id="editForm">
+        <label>Game Name:</label>
+        <input type="text" id="gameName" name="gameName" required>
+        <br><br>
+        <button type="submit">Update Game</button>
+        </form>
+        <br>
+        <a href="/">Back</a>
+    
+        <script>
+            const gameId = window.location.pathname.split("/").pop();
+        
+            const loadGame = async () => {
+                try {
+                    const response = await fetch(`/games/${gameId}`);
+                    if (!response.ok) throw new Error("Failed to fetch game details");
+                    const game = await response.json();
+        
+                    document.getElementById("gameName").value = game.gameName;
+                } catch (err) {
+                    console.error("Error loading game:", err);
+                    alert("Failed to load game into");
+                }
+            };
+        
+            loadGame();
+        
+            // Handle form submission
+            document.getElementById("editForm").addEventListener("submit", async (event) => {
+                event.preventDefault();
+        
+                const updatedGame = {
+                    gameName: document.getElementById("gameName").value
+                };
+        
+                try {
+                    const response = await fetch(`/updategames/${gameId}`, {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(updatedGame),
+                    });
+        
+                    const result = await response.json();
+        
+                    if (!response.ok) {
+                        console.error("Server response:", result);
+                        throw new Error(result.error || "Failed to update game");
+                    }
+        
+                    alert("Game updated!");
+                    window.location.href = "/";
+                } catch (err) {
+                    console.error("Error updating game:", err);
+                    alert("Failed to update game.");
+                }
+    
+            });
+        </script>
+</body>
+</html>
