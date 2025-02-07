@@ -10,10 +10,27 @@ const router = express.Router();
 const mongoose = require("mongoose");
 const bodyParser = require ("body-parser");
 
+const session = require("express-session");
+const bcrypt = require("bcrypt");
+
 const Games = require("./models/games");
+const User = require("./models/user");
+
 app.use(bodyParser.json());
 app.use(express.urlencoded({extended:true}));
 app.use(express.static(path.join(__dirname, "public")))
+
+app.use(session({
+  secret:"12345",
+  resave:false,
+  saveUninitialized:false,
+  cookie:{secure:false}// Set to true is using https
+}));
+
+function isAuthenticated(req,res, next){
+  if(req.session.user)return next();
+  return res.redirect("/login");
+}
 
 const mongouri = "mongodb://localhost:27017/GamesDB"
 mongoose.connect(mongouri);
@@ -22,6 +39,27 @@ const db = mongoose.connection;
 db.on("error", console.error.bind(console, "MongoDB connection error"));
 db.once("open", ()=>{
     console.log("Connected to MongoDB Database");
+});
+
+app.post("/register", async (req,res)=>{
+  try{
+      const {username, password, email} = req.body;
+
+      const existingUser = await User.findOne({username});
+
+      if(existingUser){
+          return res.send("Username already taken. Try a different one")
+      }
+
+      const hashedPassword = bcrypt.hashSync(password, 10);
+      const newUser = new User({username, password:hashedPassword, email});
+      await newUser.save();
+
+      res.redirect("/login");
+
+  }catch(err){
+      res.status(500).send("Error registering new user.");
+  }
 });
 
 app.get("/games", async (req, res)=>{
@@ -38,6 +76,10 @@ router.get('/',function(req,res){
   res.sendFile(path.join(__dirname+'/public/index.html'));
 });
  
+app.get("/user",isAuthenticated, (req,res)=>{
+  res.sendFile(path.join(__dirname, "public", "user.html"));
+});
+
 router.get('/AddToList',function(req,res){
   res.sendFile(path.join(__dirname+'/public/addtolist.html'));
 });
@@ -105,6 +147,26 @@ app.put("/updategames/:id", async (req, res) => {
 
 app.get("/edit/:id", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "html", "edit.html"));
+});
+
+app.post("/login", async (req,res)=>{
+  const {username, password} = req.body;
+  console.log(req.body);
+
+  const user = await User.findOne({username});
+
+  if(user && bcrypt.compareSync(password, user.password)){
+      req.session.user = username;
+      return res.redirect("/users");
+  }
+  req.session.error = "Invalid User";
+  return res.redirect("/login")
+});
+
+app.get("/logout", (req,res)=>{
+  req.session.destroy(()=>{
+      res.redirect("/login");
+  })
 });
 
 app.use('/', router);
