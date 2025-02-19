@@ -9,18 +9,19 @@ const fetchGames = async ()=>{
         }
 
         //Parse json
-        const game = await response.json();
-        console.log(game);
+        const games = await response.json();
+        console.log(games);
         //Format the data to html
-        gameContainer.innerHTML = "";
+        gameContainer.innerHTML = " ";
 
-        game.forEach((game) => {
+        games.forEach((games) => {
+            console.log("writing game...")
             const gameDiv = document.createElement("div");
             gameDiv.className = "game";
             gameDiv.innerHTML = `
-            <li>${game.gameName}</li> 
-            <button onclick="Update('${game._id}')">Update</button>
-            <button onclick="Delete('${game._id}')">Delete</button>
+            <li>${games.gameName}</li> 
+            <button onclick="Update('${games._id}')">Update</button>
+            <button onclick="Delete('${games._id}')">Delete</button>
             `;
 
             

@@ -104,7 +104,7 @@ app.put("/updategames/:id", async (req, res) => {
 });
 
 app.get("/edit/:id", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "html", "edit.html"));
+  res.sendFile(path.join(__dirname, "public", "edit.html"));
 });
 
 app.use('/', router);
