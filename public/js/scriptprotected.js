@@ -20,6 +20,8 @@ const fetchGames = async ()=>{
             gameDiv.className = "game";
             gameDiv.innerHTML = `
             <li>${games.gameName}</li> 
+            <button onclick="Update('${games._id}')">Update</button>
+            <button onclick="Delete('${games._id}')">Delete</button>
             `;
 
             
@@ -33,5 +35,29 @@ const fetchGames = async ()=>{
     
     
 }
+
+const Delete = async (id)=>{
+    if(!confirm("Are you sure you want to delete this Game?")) return;
+
+    try{
+        const response = await fetch(`/games/${id}`,{
+            method: "DELETE"
+        })
+
+        if(!response.ok)
+        {
+            throw new Error("failed to delete game")
+        }
+
+        fetchGames()
+    }catch(err){
+        console.error("error deleting game",err)
+    }
+}
+
+const Update = async (id) => {
+    window.location.href = `/edit/${id}`;
+};
+
 
 fetchGames();

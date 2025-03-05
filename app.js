@@ -4,16 +4,25 @@ console.log(msg)
 
 const express = require('express');
 const app = express();
+const session = require('express-session');
 const path = require('path');
 const router = express.Router();
+const bcrypt = require('bcrypt');
 
 const mongoose = require("mongoose");
 const bodyParser = require ("body-parser");
 
 const Games = require("./models/games");
+const User = require("./models/user");
 app.use(bodyParser.json());
 app.use(express.urlencoded({extended:true}));
 app.use(express.static(path.join(__dirname, "public")))
+app.use(session({secret:"12345", resave:false, saveUninitialized:false, cookie:{secure:false}}));
+
+function isAuthenticated(req,res, next){
+  if(req.session.user)return next();
+  return res.redirect("/login");
+}
 
 const mongouri = "mongodb://localhost:27017/GamesDB"
 mongoose.connect(mongouri);
@@ -36,6 +45,10 @@ app.get("/games", async (req, res)=>{
 
 router.get('/',function(req,res){
   res.sendFile(path.join(__dirname+'/public/index.html'));
+});
+
+router.get('/protected',function(req,res){
+  res.sendFile(path.join(__dirname+'/public/indexprotected.html'));
 });
  
 router.get('/AddToList',function(req,res){
@@ -107,6 +120,50 @@ app.put("/updategames/:id", async (req, res) => {
   }
 });
 
+app.get("/register", (req,res)=>{
+  res.sendFile(path.join(__dirname, "public", "html/register"));
+})
+
+app.post("/register", async (req, res) => {
+  try{
+      const {username, password, email} = req.body;
+
+      const existingUser = await User.findOne({username});
+
+      if(existingUser){
+          return res.send("Username already taken. Try a different one")
+      }
+
+      const hashedPassword = bcrypt.hashSync(password, 10);
+      const newUser = new User({username, password:hashedPassword, email});
+      await newUser.save();
+
+      res.redirect("/login");
+
+  }catch(err){
+      res.status(500).send("Error registering new user.");
+  }
+});
+
+app.post("/login", async (req,res)=>{
+  const {username, password} = req.body;
+  console.log(req.body);
+
+  const user = await User.findOne({username});
+
+  if(user && bcrypt.compareSync(password, user.password)){
+      req.session.user = username;
+      return res.redirect("/protected");
+  }
+  req.session.error = "Invalid User";
+  return res.redirect("/login")
+});
+
+app.get("/logout", (req,res)=>{
+  req.session.destroy(()=>{
+      res.redirect("/login");
+  })
+});
 
 
 app.use('/', router);
