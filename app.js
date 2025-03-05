@@ -46,6 +46,10 @@ router.get('/login',function(req,res){
   res.sendFile(path.join(__dirname+'/public/login.html'));
 });
 
+router.get("/edit/:id", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "edit.html"));
+});
+
 app.post("/addtolist", async (req,res)=>{
   try{
       const newGame = new Games(req.body)
@@ -103,9 +107,7 @@ app.put("/updategames/:id", async (req, res) => {
   }
 });
 
-app.get("/edit/:id", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "edit.html"));
-});
+
 
 app.use('/', router);
 app.listen(process.env.port || 3000);
