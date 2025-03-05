@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 var msg = "Hi"
 
 console.log(msg)
@@ -9,6 +11,8 @@ const path = require('path');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 
+const { register } = require("module");
+
 const mongoose = require("mongoose");
 const bodyParser = require ("body-parser");
 
@@ -17,14 +21,14 @@ const User = require("./models/user");
 app.use(bodyParser.json());
 app.use(express.urlencoded({extended:true}));
 app.use(express.static(path.join(__dirname, "public")))
-app.use(session({secret:"12345", resave:false, saveUninitialized:false, cookie:{secure:false}}));
+app.use(session({secret:process.env.SESSION_SECRET, resave:false, saveUninitialized:false, cookie:{secure:false}}));
 
 function isAuthenticated(req,res, next){
   if(req.session.user)return next();
   return res.redirect("/login");
 }
 
-const mongouri = "mongodb://localhost:27017/GamesDB"
+const mongouri = process.env.MONGO_URI;
 mongoose.connect(mongouri);
 
 const db = mongoose.connection;
@@ -171,3 +175,5 @@ app.listen(process.env.port || 3000);
 
 
 console.log('Running at Port 3000');
+
+module.exports = app;
