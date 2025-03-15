@@ -22,7 +22,7 @@ app.use(bodyParser.json());
 app.use(express.urlencoded({extended:true}));
 app.use(express.static(path.join(__dirname, "public")))
 app.use(session({secret:process.env.SESSION_SECRET, resave:false, saveUninitialized:false, cookie:{secure:false}}));
-
+//test
 function isAuthenticated(req,res, next){
   if(req.session.user)return next();
   return res.redirect("/login");
